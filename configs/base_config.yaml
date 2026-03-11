@@ -1,0 +1,57 @@
+dataset: daic-woz  # 固定为DAIC-WOZ数据集
+accumulation_steps: 2  # 梯度累积，适配小batch
+run_id: 1
+seed: 42  # 固定随机种子，保证可复现
+save_model: 1
+
+# 任务类型：DAIC-WOZ为二分类（抑郁/非抑郁）
+target: classification
+
+log_every: 10  # 减少日志输出频率
+epochs: 100  # 适配Kaggle时长限制
+eval_every: 5  # 降低验证频率
+batch_size: 4  # 适配16GB GPU显存
+
+n_temporal_windows: 1
+seconds_per_window: 6  # 对齐DAIC-WOZ数据特征
+presence_threshold: 0.50
+
+# DAIC-WOZ用到的模态（仅保留实际可用的）
+use_modalities: [daic_audio_mfcc, daic_audio_egemaps, daic_facial_aus, daic_gaze, daic_head_pose, daic_text]
+
+model_checkpoint:
+  monitor_quantity: TemporalEvaluator_f1  # 分类任务监控F1分数
+  direction: up  # F1越高越好
+
+evaluators:
+  - name: temporal_evaluator
+    args:
+      dataset: daic-woz-eval
+      kind: validation
+
+heads:
+  - kind: classification
+    name: depression
+    args:
+      num_classes: 2  # DAIC-WOZ二分类
+      score_range: 25
+
+losses:
+  - kind: xe
+    name: depression
+    target_head: depression
+    args:
+      num_classes: 2
+      score_range: 25
+
+scheduler: "cosine"
+scheduler_args:
+  start_epoch: 0
+  end_epoch: 100  # 匹配训练轮数
+  max_lr: 0.0001
+  mode: triangular
+  step_size_up: 24
+  step_size_down: 24
+
+bifg:
+  avg_pool_len: 256

@@ -1,0 +1,6 @@
+reading-between-the-frames:
+  d-vlog:
+  d-vlog-original:
+  daic-woz: "/kaggle/input/daic-woz-raw/data"  # Kaggle挂载的原始DAIC-WOZ路径
+  e-daic-woz:
+  num_workers: 0
